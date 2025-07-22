@@ -6,8 +6,42 @@
     <title>CV Maxxing</title>
     <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-    <h1 id="title" onclick="test()">This is my cv</h1>
+<body class="main-container">
+    <div class="project-panel">
+        <div class="header">
+            <h1>CV Maxxing</h1>
+            <button class="new-btn">New</button>
+        </div>
+        <div class="project-list" id="projectList"></div>
+    </div>
+    <div class="preview-panel">
+        <div class="control">
+            <button class="zoom-btn">-</button>
+            <span id="zoomLevel">100%</span>
+            <button class="zoom-btn">+</button>
+        </div>
+        <div class="pages">
+
+        </div>
+    </div>
+    <div class="tools-panel">
+        <div class="content">
+            <h3>Personal Information</h3>
+
+            <label>Full Name</label>
+            <input type="text" id="fullName" placeholder="John Doe">
+            
+            <label>Email</label>
+            <input type="email" id="email" placeholder="john.doe@email.com">
+            
+            <label>Phone</label>
+            <input type="tel" id="phone" placeholder="+1 (555) 123-4567">
+            
+            <label>Professional Summary</label>
+            <textarea id="summary" placeholder="Brief summary of your professional background..."></textarea>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
