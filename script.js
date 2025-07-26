@@ -201,7 +201,15 @@ function createResumePage(originalPage, pageNumber) {
     console.log("create resume Page");
 }
 
+function addInputListeners(container = document) {
+    const inputs = container.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('input', updatePreview);
+    });
+}
+
 // Initialize everything
 document.addEventListener('DOMContentLoaded', function() {
+    addInputListeners();
     initApp();
 });
