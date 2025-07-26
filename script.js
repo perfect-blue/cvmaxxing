@@ -6,6 +6,7 @@ let educationCount = 0;
 
 function initApp() {
     createProject();
+    addExperience();
     updatePreview();
 }
 
@@ -73,7 +74,17 @@ function renderProjects() {
 }
 
 function loadProject(id){
-    console.log("Project Loaded")
+    currentProjectId = id;
+    const project = projects[id];
+
+    document.getElementById('fullName').value = project.data.fullName || '';
+    document.getElementById('email').value = project.data.email || '';
+    document.getElementById('phone').value = project.data.phone || '';
+    document.getElementById('address').value = project.data.address || '';
+    document.getElementById('summary').value = project.data.summary || '';
+    document.getElementById('skills').value = project.data.skills || '';
+    
+    renderCVList();
     updatePreview();
 }
 
