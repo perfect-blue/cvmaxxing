@@ -1,3 +1,26 @@
+const sectionConfigs = {
+    experience: {
+        containerId: 'experienceList',
+        counter: () => ++experienceCount,
+        fields: [
+            { name: 'title', label: 'Job Title', placeholder: 'Software Developer', type: 'input' },
+            { name: 'company', label: 'Company', placeholder: 'Tech Company Inc.', type: 'input' },
+            { name: 'date', label: 'Date Range', placeholder: 'Jan 2020 - Present', type: 'input' },
+            { name: 'description', label: 'Description', placeholder: 'Describe your responsibilities...', type: 'textarea' }
+        ]
+    },
+    education: {
+        containerId: 'educationList',
+        counter: () => ++educationCount,
+        fields: [
+            { name: 'degree', label: 'Degree', placeholder: 'Bachelor of Science', type: 'input' },
+            { name: 'school', label: 'School/University', placeholder: 'University Name', type: 'input' },
+            { name: 'date', label: 'Date Range', placeholder: '2016 - 2020', type: 'input' },
+            { name: 'info', label: 'Additional Info', placeholder: 'GPA, honors, coursework...', type: 'textarea' }
+        ]
+    }
+};
+
 let projects = {};
 let currentProjectId = null;
 let zoomLevel = 1;
@@ -6,7 +29,8 @@ let educationCount = 0;
 
 function initApp() {
     createProject();
-    addExperience();
+    addSection('experience');
+    addSection('education');
     updatePreview();
 }
 
@@ -31,7 +55,9 @@ function createProject() {
             phone: '123-456-7890',
             address: '123 Main St, Anytown, USA',
             summary: 'Test user summary',
-            skills: 'Test skills'
+            skills: 'Test skills',
+            education: [],
+            experience: [],
         },
         lastModified: new Date()
     };
@@ -80,11 +106,12 @@ function loadProject(id){
     document.getElementById('fullName').value = project.data.fullName || '';
     document.getElementById('email').value = project.data.email || '';
     document.getElementById('phone').value = project.data.phone || '';
-    document.getElementById('address').value = project.data.address || '';
     document.getElementById('summary').value = project.data.summary || '';
     document.getElementById('skills').value = project.data.skills || '';
     
-    renderCVList();
+    addSection('experience', project.data.experience);
+    addSection('education', project.data.education);
+
     updatePreview();
 }
 
@@ -97,6 +124,78 @@ function deleteProject(id){
     delete projects[id];
     renderProjects(); 
 }
+
+//Dynamic sections
+function addSection(type, data={}) {
+    const config = sectionConfigs[type];
+    const container = document.getElementById(config.containerId);
+    const id = config.counter();
+
+    const fragment = document.createDocumentFragment();
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = 'dynamic-section';
+
+    config.fields.forEach(field =>{
+        const wrapper = document.createElement('div');
+        wrapper.className = 'form-group';
+        const label = document.createElement('label');
+        label.textContent = field.label;
+        wrapper.appendChild(label);
+
+        let inputElement;
+        if(field.type === 'textarea'){
+            inputElement = document.createElement('textarea');
+            inputElement.id = `${type}${field.name.charAt(0).toUpperCase() + field.name.slice(1)}${id}`;
+            inputElement.placeholder = field.placeholder;
+            inputElement.textContent = data[field.name] || '';
+        } else {
+            inputElement = document.createElement('input');
+            inputElement.type = 'text';
+            inputElement.id = `${type}${field.name.charAt(0).toUpperCase() + field.name.slice(1)}${id}`;
+            inputElement.placeholder = field.placeholder;
+            inputElement.value = data[field.name] || '';
+        }
+
+        wrapper.appendChild(inputElement);
+        sectionDiv.appendChild(wrapper);
+    });
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-btn';
+    removeBtn.textContent = 'Remove';
+    removeBtn.onclick = () => removeSection(sectionDiv);
+    sectionDiv.appendChild(removeBtn);
+
+    fragment.appendChild(sectionDiv);
+    container.appendChild(fragment);
+
+    addInputListeners(sectionDiv);
+}
+
+function removeSection(sectionElement) {
+    sectionElement.remove();
+    updatePreview();
+}
+
+function getSectionData(type) {
+    const config = sectionConfigs[type];
+    const sections = [];
+    const container = document.getElementById(config.containerId);
+
+    container.querySelectorAll('.dynamic-section').forEach(section => {
+        const entry = {};
+        config.fields.forEach(field => {
+            const input = section.querySelector(`[placeholder="${field.placeholder}"]`);
+            entry[field.name] = input?.value || '';
+        });
+        if (Object.values(entry).some(v => v)) {
+            sections.push(entry);
+        }
+    });
+
+    return sections;
+}
+
 
 // preview related
 function updatePreview(){
@@ -126,12 +225,15 @@ function saveResume(){
     const resume = projects[currentProjectId];
     console.log(resume);
     const fields = [
-        'fullName','email', 'phone', 'summary'
+        'fullName','email', 'phone', 'summary', 'skills'
     ];
     const newData ={};
     fields.forEach(field => {
         newData[field] = document.getElementById(field).value;
     });
+
+    newData.experience = getSectionData('experience');
+    newData.education = getSectionData('education');
 
     const hasChanges = JSON.stringify(resume.data) !== JSON.stringify(newData);
     if (!hasChanges) return;
