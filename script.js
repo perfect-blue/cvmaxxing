@@ -48,7 +48,7 @@ function createProject() {
     const id = 'project_' + Date.now();
     const newProject = {
         id: id,
-        name: 'Untitled Project',
+        name: 'Software Engineer',
         data: {
             fullName: 'Test User',
             email: 'test@example.com',
@@ -79,19 +79,35 @@ function renderProjects() {
         projectItem.className = `project-item ${project.id === currentProjectId ? 'active' : ''}`;
         projectItem.onclick = () => loadProject(project.id);
 
-        const displayName = project.data.fullName || project.name;
+        const nameEl = document.createElement('h3');
+        nameEl.textContent = project.name || 'Untitled Project';
 
-        projectItem.innerHTML = `
-            <button class="delete-project">×</button>
-            <h3>${displayName}</h3>
-            <p>Modified: ${project.lastModified.toLocaleDateString()}</p>
-        `;
+        if (project.id === currentProjectId) {
+            nameEl.contentEditable = "true";
+            nameEl.classList.add('editable-project-name');
 
-        const deleteBtn = projectItem.querySelector('.delete-project');
+            nameEl.addEventListener('click', (e) => e.stopPropagation());
+            nameEl.addEventListener('input', (e) => {
+                project.name = e.target.textContent.trim() || 'Untitled Project';
+                project.lastModified = new Date();
+                date.textContent = `Modified: ${project.lastModified.toLocaleDateString()}`;
+            });
+        }
+
+        projectItem.appendChild(nameEl);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-project';
+        deleteBtn.textContent = '×';
         deleteBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             deleteProject(project.id);
         });
+        projectItem.appendChild(deleteBtn);
+
+        const date = document.createElement('p');
+        date.textContent = `Modified: ${project.lastModified.toLocaleDateString()}`;
+        projectItem.appendChild(date);
 
         fragment.appendChild(projectItem);
     });
@@ -102,6 +118,11 @@ function renderProjects() {
 function loadProject(id){
     currentProjectId = id;
     const project = projects[id];
+
+    document.getElementById('experienceList').innerHTML = '';
+    document.getElementById('educationList').innerHTML = '';
+    experienceCount = 0;
+    educationCount = 0;
 
     document.getElementById('fullName').value = project.data.fullName || '';
     document.getElementById('email').value = project.data.email || '';
@@ -172,6 +193,14 @@ function addSection(type, data={}) {
     addInputListeners(sectionDiv);
 }
 
+function addExperience() {
+    addSection('experience');
+}
+
+function addEducation() {
+    addSection('education');
+}
+
 function removeSection(sectionElement) {
     sectionElement.remove();
     updatePreview();
@@ -223,29 +252,22 @@ function saveResume(){
     if (!currentProjectId) return;
 
     const resume = projects[currentProjectId];
-    console.log(resume);
-    const fields = [
-        'fullName','email', 'phone', 'summary', 'skills'
-    ];
-    const newData ={};
+
+    const fields = ['fullName','email','phone','address','summary','skills'];
+    const newData = {};
     fields.forEach(field => {
-        newData[field] = document.getElementById(field).value;
+        newData[field] = document.getElementById(field)?.value || '';
     });
 
     newData.experience = getSectionData('experience');
     newData.education = getSectionData('education');
 
-    const hasChanges = JSON.stringify(resume.data) !== JSON.stringify(newData);
-    if (!hasChanges) return;
-
     resume.data = newData;
     resume.lastModified = new Date();
 
-    const newName = newData.fullName ? `$${newData.fullName}` : resume.name;
-    if (resume.name !== newName) resume.name = newName;
-
     renderProjects();
 }
+
 
 function generateResume(data){
     return `
