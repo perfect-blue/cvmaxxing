@@ -21,6 +21,41 @@ const sectionConfigs = {
     }
 };
 
+const project_template =  {
+    name: 'Marketing Manager',
+    data: {
+        fullName: 'Sarah Johnson',
+        email: 'sarah.johnson@email.com',
+        phone: '(555) 234-5678',
+        address: '789 Oak Avenue, Seattle, WA 98101',
+        summary: 'Results-driven marketing professional with 5+ years of experience in digital marketing, brand development, and campaign management. Proven track record of increasing brand awareness and driving engagement through innovative marketing strategies.',
+        skills: 'Digital Marketing, Social Media Management, Content Strategy, Brand Development, Marketing Analytics, Project Management, Team Leadership, Adobe Creative Suite, Google Analytics',
+        education: [
+            {
+                degree: 'Bachelor of Business Administration',
+                school: 'University of Washington',
+                date: '2012 - 2016',
+                info: 'Major in Marketing, Minor in Communications. GPA: 3.8. Dean\'s List all semesters.'
+            }
+        ],
+        experience: [
+            {
+                title: 'Senior Marketing Manager',
+                company: 'Tech Solutions Inc.',
+                date: 'Jan 2020 - Present',
+                description: 'Lead digital marketing initiatives resulting in 45% growth in online engagement. Manage team of 5 marketing specialists and $1M annual budget. Develop and execute comprehensive marketing strategies across multiple channels.'
+            },
+            {
+                title: 'Marketing Specialist',
+                company: 'Creative Agency Group',
+                date: 'Jun 2016 - Dec 2019',
+                description: 'Executed social media campaigns achieving 200% increase in follower engagement. Collaborated with design team to create branded content. Conducted market research and competitor analysis.'
+            }
+        ],
+    },
+    lastModified: new Date()
+};
+
 let projects = {};
 let currentProjectId = null;
 let zoomLevel = 1;
@@ -28,13 +63,11 @@ let experienceCount = 0;
 let educationCount = 0;
 
 function initApp() {
-    createProject();
+    createProject(project_template);
     addSection('experience');
     addSection('education');
     updatePreview();
 }
-
-// project-panel related
 
 /**
  * Composing list of project HTML.
@@ -44,30 +77,39 @@ function initApp() {
  *      <p>Modified: MM/DD/YYYY </p>
  * </div>
  */
-function createProject() {
+function createProject(project = {}) {
     const id = 'project_' + Date.now();
-    const newProject = {
+    const isEmpty = Object.keys(project).length === 0;
+    const defaultProject = {
         id: id,
-        name: 'Software Engineer',
+        name: 'Untitled Document',
         data: {
-            fullName: 'Test User',
-            email: 'test@example.com',
-            phone: '123-456-7890',
-            address: '123 Main St, Anytown, USA',
-            summary: 'Test user summary',
-            skills: 'Test skills',
+            fullName: '',
+            email: '',
+            phone: '',
+            address: '',
+            summary: '',
+            skills: '',
             education: [],
             experience: [],
         },
         lastModified: new Date()
     };
 
+    const newProject = isEmpty ? defaultProject : {
+        id: id,
+        ...project,
+        lastModified: new Date()
+    };
+
     projects[id] = newProject;
     currentProjectId = id;
+    console.log(currentProjectId);
     
     renderProjects();
-    loadProject(id);
+    loadProject(currentProjectId);
 }
+
 
 function renderProjects() {
     const container = document.getElementById("projects");
@@ -118,7 +160,8 @@ function renderProjects() {
 function loadProject(id){
     currentProjectId = id;
     const project = projects[id];
-
+    console.log(currentProjectId);
+    console.log(projects);
     document.getElementById('experienceList').innerHTML = '';
     document.getElementById('educationList').innerHTML = '';
     experienceCount = 0;
@@ -129,12 +172,20 @@ function loadProject(id){
     document.getElementById('phone').value = project.data.phone || '';
     document.getElementById('summary').value = project.data.summary || '';
     document.getElementById('skills').value = project.data.skills || '';
-    
-    addSection('experience', project.data.experience);
-    addSection('education', project.data.education);
+
+    (project.data.experience && project.data.experience.length > 0 
+        ? project.data.experience 
+        : [{}]
+    ).forEach(exp => addSection('experience', exp));
+
+    (project.data.education && project.data.education.length > 0 
+        ? project.data.education 
+        : [{}]
+    ).forEach(edu => addSection('education', edu));
 
     updatePreview();
 }
+
 
 function deleteProject(id){
     if (Object.keys(projects).length === 1) {
